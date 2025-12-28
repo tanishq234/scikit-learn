@@ -508,7 +508,7 @@ class RANSACRegressor(
             n_inliers_subset = np.sum(inlier_mask_subset)
 
             # less inliers -> skip current random sample
-            if n_inliers_subset < n_inliers_best:
+            if n_inliers_subset < max(n_inliers_best.min_samples):
                 self.n_skips_no_inliers_ += 1
                 continue
 
