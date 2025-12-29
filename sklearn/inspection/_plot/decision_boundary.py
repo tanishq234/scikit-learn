@@ -210,9 +210,25 @@ class DecisionBoundaryDisplay:
             _, ax = plt.subplots()
 
         plot_func = getattr(ax, plot_method)
-        if self.response.ndim == 2:
+        is_multiclass_predict = (
+    self.response.ndim == 2
+    and hasattr(self, "n_classes_")
+    and self.n_classes_ is not None
+    and self.n_classes_ > 2
+)
+
+        if self.response.ndim == 2 and not is_multiclass_predict:
+            # binary or regression → old behavior
             self.surface_ = plot_func(self.xx0, self.xx1, self.response, **kwargs)
-        else:  # self.response.ndim == 3
+
+        else:
+            # handle true multiclass (predict / predict_proba / decision_function)
+            if is_multiclass_predict:
+                response_3d = np.zeros((*self.response.shape, self.n_classes_))
+                for cls_idx in range(self.n_classes_):
+                    response_3d[:, :, cls_idx] = self.response == cls_idx
+                self.response = response_3d
+
             n_responses = self.response.shape[-1]
             for kwarg in ("cmap", "colors"):
                 if kwarg in kwargs:
